@@ -106,7 +106,7 @@ logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stderr))
 
 class Mandrill(object):
-    def __init__(self, apikey=None, debug=False):
+    def __init__(self, apikey=None, debug=False, timeout=None):
         '''Initialize the API client
 
         Args:
@@ -115,6 +115,7 @@ class Mandrill(object):
                - ~/.mandrill.key for the user executing the script
                - /etc/mandrill.key
            debug (bool): set to True to log all the request and response information to the "mandrill" logger at the INFO level.  When set to false, it will log at the DEBUG level.  By default it will write log entries to STDERR
+           timeout (float): timeout in seconds of requests to API
        '''
 
         self.session = requests.session()
@@ -132,6 +133,7 @@ class Mandrill(object):
 
         if apikey is None: raise Error('You must provide a Mandrill API key')
         self.apikey = apikey
+        self.timeout = timeout
 
         self.templates = Templates(self)
         self.exports = Exports(self)
@@ -156,7 +158,7 @@ class Mandrill(object):
         params = json.dumps(params)
         self.log('POST to %s%s.json: %s' % (ROOT, url, params))
         start = time.time()
-        r = self.session.post('%s%s.json' % (ROOT, url), data=params, headers={'content-type': 'application/json', 'user-agent': 'Mandrill-Python/1.0.58'})
+        r = self.session.post('%s%s.json' % (ROOT, url), data=params, headers={'content-type': 'application/json', 'user-agent': 'Mandrill-Python/1.0.58'}, timeout=self.timeout)
         try:
             remote_addr = r.raw._original_response.fp._sock.getpeername() # grab the remote_addr before grabbing the text since the socket will go away
         except:
